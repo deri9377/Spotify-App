@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<%-console.log(data.items)%>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <title>Liked Songs Sorter</title>
+</head>
+<body>
+<H1>
+    Sort your liked songs
+</H1>
+<h3>
+    drag the genres into different playlists to automatically sort similar genres into playlists or go crazy and mix them up
+</h3>
+Total number of playlits: <%=data.items.length%>
+<br>
+<%for (var i=0; i < data.items.length/5; i++) {%>
+<button class="collapsible"><input class="input" type="text"  placeholder="Playlist<%i + 1%>"></button>
+<div class="content">
+    <table class="table table-striped">
+        <%for (var j=0; j < 5; j++) {%>
+        <tr class="draggable" draggable="true">
+            <th><%=data.items[i * 5 + j].name%></th>
+        </tr>
+        <%}%>
+    </table>
+</div>
+<%}%>
+</body>
+</html>
+<script>
+    var table = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < table.length; i++) {
+        table[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        });
+    }
+
+    let dragged = null;
+
+    const source = document.getElementsByClassName("draggable");
+    for (i = 0; i < source.length; i++) {
+        source[i].addEventListener("dragstart", (event) => {
+            // store a ref. on the dragged elem
+            dragged = event.target;
+        });
+    }
+
+    const target = document.getElementsByClassName("table table-striped");
+    for (i = 0; i < target.length; i++) {
+        target[i].addEventListener("dragover", (event) => {
+            // prevent default to allow drop
+            event.preventDefault();
+        });
+
+        target[i].addEventListener("drop", (event) => {
+            event.preventDefault();
+            // move dragged element to the selected drop target
+            dragged.parentNode.removeChild(dragged);
+            let row = document.createElement('tr');
+            row.className = 'draggable'
+            row.draggable = true
+            let col = document.createElement('th');
+            row.append(col);
+            col.innerHTML = dragged.innerHTML;
+            event.target.parentNode.parentNode.appendChild(row)
+        });
+    }
+
+
+</script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">

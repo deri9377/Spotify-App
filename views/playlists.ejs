@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<%-console.log(data.items)%>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <title>Playlist Sorter</title>
+</head>
+<body>
+<div class="container" style="justify-content: center">
+    <H1>
+        Sort your Playlists
+    </H1>
+    <h3>
+        Drag the names of your playlists into different folders and give the folders a name. You can add as many folders as you like
+    </h3>
+    Total number of playlits: <%=data.items.length%>
+    <br><br>
+    <button id="playlistAdder">Add folder</button>
+    <button type="submit" form="folders">Submit</button>
+</div>
+<div class="container" id="playlists">
+    <form id="folders" method="POST" action="/loading" id="queryData" enctype='application/x-www-form-urlencoded'>
+        <table class="table">
+            <tr id="row" style="display: flex;flex-wrap: wrap;">
+            <%for (var i=0; i < data.items.length/5; i++) {%>
+                <td class="nowrap">
+                    <input class="input" form="folders" type="text" placeholder="Playlist">
+                    <button type="button" class="collapsible"></button>
+                    <div class="content">
+                        <table class="table">
+                            <%for (var j=0; j < 5; j++) {%>
+                                <tr class="draggable" draggable="true">
+                                    <td><%=data.items[i * 5 + j].name%></td>
+                                </tr>
+                            <%}%>
+                        </table>
+                    </div>
+                </td>
+            <%}%>
+            </tr>
+        </table>
+    </form>
+</div>
+</body>
+</html>
+<script>
+
+    function addCollapseable(element) {
+        element.addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        });
+    }
+    var table = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < table.length; i++) {
+        addCollapseable(table[i])
+    }
+
+    let dragged = null;
+
+    function addDraggable(element) {
+        element.addEventListener("dragstart", (event) => {
+            // store a ref. on the dragged elem
+            dragged = event.target;
+        });
+    }
+
+    const source = document.getElementsByClassName("draggable");
+    for (i = 0; i < source.length; i++) {
+        addDraggable(source[i])
+    }
+
+    function addDrop(element) {
+        element.addEventListener("dragover", (event) => {
+            // prevent default to allow drop
+            event.preventDefault();
+        });
+
+        element.addEventListener("drop", (event) => {
+            event.preventDefault();
+            // move dragged element to the selected drop target
+            if (dragged.parentNode.children.length == 1) {
+                dragged.parentNode.parentNode.parentNode.parentNode.parentNode.removeChild(dragged.parentNode.parentNode.parentNode.parentNode);
+            } else {
+                dragged.parentNode.removeChild(dragged);
+            }
+            var parent = event.target
+            while (parent.className != 'table') {
+                parent = parent.parentElement
+            }
+            var row = parent.insertRow(-1)
+            row.className = 'draggable'
+            row.draggable = true
+            row.addEventListener("dragstart", (event) => {
+                // store a ref. on the dragged elem
+                dragged = event.target;
+            });
+            var col = row.insertCell(0)
+            col.innerHTML = dragged.innerHTML
+        });
+    }
+
+    const target = document.getElementsByClassName("table");
+    for (i = 0; i < target.length; i++) {
+        addDrop(target[i])
+    }
+
+    var btn = document.getElementById('playlistAdder')
+    btn.addEventListener("click", (event) => {
+        var tr = document.getElementById('row')
+        var td = document.createElement('td')
+        td.className = "nowrap"
+        var input = document.createElement('input')
+        input.className = "input"
+        input.form = "folders"
+        input.type = "text"
+        input.placeholder = "Playlist"
+        input.required = true
+        var btn  = document.createElement('button')
+        btn.className = 'collapsible'
+        btn.type = 'button'
+        var inner = document.createElement('div')
+        inner.className = "content"
+        var table = document.createElement('table')
+        table.className = 'table'
+        table.innerHTML += '<tr class="draggable" draggable="true"><th></th></tr>'
+        addCollapseable(btn)
+        addDrop(table)
+        inner.appendChild(table)
+        td.append(input)
+        td.append(btn)
+        td.appendChild(inner)
+        tr.appendChild(td)
+
+    })
+
+</script>
+</body>
+</html>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
