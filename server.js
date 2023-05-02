@@ -165,4 +165,8 @@ app.post('/get_songs', function(req, res) {
     });
 
 })
+
+app.post('/loading', function (req, res) {
+    console.log(req.body)
+})
 app.listen(8888);

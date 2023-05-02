@@ -21,35 +21,49 @@
 </div>
 <div class="container" id="playlists">
     <form id="folders" method="POST" action="/loading" id="queryData" enctype='application/x-www-form-urlencoded'>
-        <table class="table">
-            <tr id="row" style="display: flex;flex-wrap: wrap;">
-            <%for (var i=0; i < data.items.length/5; i++) {%>
-                <td class="nowrap">
-                    <input class="input" form="folders" type="text" placeholder="Playlist">
-                    <button type="button" class="collapsible"></button>
-                    <div class="content">
-                        <table class="table">
-                            <%for (var j=0; j < 5; j++) {%>
-                                <tr class="draggable" draggable="true">
-                                    <td><%=data.items[i * 5 + j].name%></td>
-                                </tr>
-                            <%}%>
-                        </table>
-                    </div>
-                </td>
-            <%}%>
+        <table class="table" id="playlistHolder">
+            <tr style="display: flex;flex-wrap: wrap;">
+                <%for (var j=0; j < data.items.length; j++) {%>
+                        <td class="draggable" draggable="true"><%=data.items[j].name%></td>
+                <%}%>
             </tr>
+        </table>
+        <table class="table">
+            <tr id="row" style="display: flex;flex-wrap: wrap;"></tr>
         </table>
     </form>
 </div>
 </body>
 </html>
 <script>
+    var i;
+
+    function addRemove(element) {
+        element.addEventListener("click", function () {
+            var parent = event.target
+            while (parent.className != 'nowrap') {
+                console.log(parent.className)
+                parent = parent.parentElement
+            }
+            var playlistHolder = document.getElementById("playlistHolder")
+            var table = parent.getElementsByClassName('table dropable')[0]
+            for (i = 0; i < table.rows.length; i++) {
+                var col = playlistHolder.rows.item(0).insertCell(-1)
+                col.innerHTML = table.rows.item(i).innerHTML
+            }
+            parent.parentElement.removeChild(parent)
+        })
+    }
+
+    var removeButton = document.getElementsByClassName("remove")
+    for (i = 0; i < removeButton.length; i++) {
+        addRemove(removeButton[i]);
+    }
 
     function addCollapseable(element) {
         element.addEventListener("click", function() {
             this.classList.toggle("active");
-            var content = this.nextElementSibling;
+            var content = element.parentElement.getElementsByClassName('content')[0]
             if (content.style.maxHeight){
                 content.style.maxHeight = null;
             } else {
@@ -58,10 +72,9 @@
         });
     }
     var table = document.getElementsByClassName("collapsible");
-    var i;
 
     for (i = 0; i < table.length; i++) {
-        addCollapseable(table[i])
+        addCollapseable(table[i]);
     }
 
     let dragged = null;
@@ -78,6 +91,7 @@
         addDraggable(source[i])
     }
 
+    // dragover and drop event listener function
     function addDrop(element) {
         element.addEventListener("dragover", (event) => {
             // prevent default to allow drop
@@ -93,8 +107,12 @@
                 dragged.parentNode.removeChild(dragged);
             }
             var parent = event.target
-            while (parent.className != 'table') {
+            while (parent.className != 'table dropable') {
                 parent = parent.parentElement
+            }
+            var content = parent.parentElement
+            if (parent.rows.item(0).innerHTML === "<th></th>") {
+                parent.deleteRow(0)
             }
             var row = parent.insertRow(-1)
             row.className = 'draggable'
@@ -105,14 +123,18 @@
             });
             var col = row.insertCell(0)
             col.innerHTML = dragged.innerHTML
+            //This allows the content to expand with new elements being added
+            content.style.maxHeight = content.scrollHeight + "px";
         });
     }
 
-    const target = document.getElementsByClassName("table");
+    // add drop listener to all elements with table dropable class
+    const target = document.getElementsByClassName("table dropable");
     for (i = 0; i < target.length; i++) {
         addDrop(target[i])
     }
 
+    // add listener for playlist adder button
     var btn = document.getElementById('playlistAdder')
     btn.addEventListener("click", (event) => {
         var tr = document.getElementById('row')
@@ -127,16 +149,22 @@
         var btn  = document.createElement('button')
         btn.className = 'collapsible'
         btn.type = 'button'
+        var rmvBtn = document.createElement('button')
+        rmvBtn.className = 'remove'
+        rmvBtn.type = 'button'
+        rmvBtn.innerHTML = "Remove"
+        addRemove(rmvBtn)
         var inner = document.createElement('div')
         inner.className = "content"
         var table = document.createElement('table')
-        table.className = 'table'
+        table.className = 'table dropable'
         table.innerHTML += '<tr class="draggable" draggable="true"><th></th></tr>'
         addCollapseable(btn)
         addDrop(table)
         inner.appendChild(table)
         td.append(input)
         td.append(btn)
+        td.append(rmvBtn)
         td.appendChild(inner)
         tr.appendChild(td)
 
